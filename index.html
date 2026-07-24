@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -231,8 +231,7 @@ input{font-family:inherit;}
   .dock-icon{width:78px;font-size:8px;}
   .dock-icon .glyph{font-size:16px;padding:7px 0;}
   #contact-btn{padding:9px 12px;}
-  .app-window{position:fixed !important;left:50% !important;top:50% !important;transform:translate(-50%,-50%);width:92vw !important;max-height:82vh;}
-  .app-titlebar{cursor:default;}
+  .app-window{width:92vw !important;max-height:82vh;}
   #win-terminal,#win-synth,#win-cam,#win-messenger,#win-route,#win-memory{height:auto;max-height:82vh;}
   #term-output{max-height:34vh;}
   #msg-log{max-height:40vh;}
@@ -522,12 +521,10 @@ NODE_06  |  PORT: 22    |  STATUS: ONLINE     |  PROTOCOL: SECURE
 --------------------------------------------------------------------------
 
 [README.TXT // SYS_ADMIN_NOTE]:
-"If you're trying to bypass the perimeter alert, trace a 3-node
- sequence:
+"If you're trying to bypass the perimeter alert, trace a 3-node sequence:
  1. NEVER connect to a node flagged as CORRUPTED or INFECTED.
  2. Avoid PORT 8080 -- 'He' is actively sniffing traffic on that port.
- 3. Your sequence must start with the lowest-numbered valid node,
-    then move forward in ascending order for a clean relay path."</pre>
+ 3. Your sequence must start with the lowest-numbered valid node, then move forward in ascending order for a clean relay path."</pre>
             <div class="puzzle-options" id="route-options">
               <button class="opt-btn" data-letter="a">[A] ROUTE NODE_01 &rarr; NODE_02 &rarr; NODE_06</button>
               <button class="opt-btn" data-letter="b">[B] ROUTE NODE_01 &rarr; NODE_04 &rarr; NODE_06</button>
@@ -636,7 +633,15 @@ function staticBurst(duration,vol){
 function unlockAudio(){
   if(bgmStarted)return;
   bgmStarted=true;
-  try{ const c=ensureAudio(); if(c.state==='suspended') c.resume(); }catch(e){}
+  try{
+    const c=ensureAudio();
+    if(c.state==='suspended') c.resume();
+    const silentBuf=c.createBuffer(1,1,22050);
+    const silentSrc=c.createBufferSource();
+    silentSrc.buffer=silentBuf;
+    silentSrc.connect(c.destination);
+    silentSrc.start(0);
+  }catch(e){}
   const b=document.getElementById('bgm');
   b.volume=0;
   b.play().catch(()=>{});
@@ -724,18 +729,27 @@ document.querySelectorAll('[data-close]').forEach(x=>{
 function openWindow(id){
   if(locked)return;
   const w=document.getElementById(id);
+  const wasHidden=w.classList.contains('hidden');
   w.classList.remove('hidden');
   w.style.zIndex=++zTop;
   beep('high');
   if(id==='win-route')refreshRouteWindow();
   if(id==='win-memory')refreshMemoryWindow();
+  if(wasHidden&&isMobileLayout())centerInMain(w);
+}
+function centerInMain(win){
+  const parent=document.getElementById('os-main').getBoundingClientRect();
+  const wr=win.getBoundingClientRect();
+  const left=Math.max(0,(parent.width-wr.width)/2);
+  const top=Math.max(0,(parent.height-wr.height)/2);
+  win.style.left=left+'px';
+  win.style.top=top+'px';
 }
 function makeDraggable(win){
   const bar=win.querySelector('.app-titlebar');
   let dragging=false,ox=0,oy=0;
   bar.addEventListener('pointerdown',e=>{
     if(e.target.classList.contains('x'))return;
-    if(isMobileLayout())return;
     dragging=true;
     win.style.zIndex=++zTop;
     const r=win.getBoundingClientRect();
@@ -746,8 +760,13 @@ function makeDraggable(win){
   bar.addEventListener('pointermove',e=>{
     if(!dragging)return;
     const parent=document.getElementById('os-main').getBoundingClientRect();
-    win.style.left=Math.max(0,e.clientX-parent.left-ox)+'px';
-    win.style.top=Math.max(0,e.clientY-parent.top-oy)+'px';
+    const wr=win.getBoundingClientRect();
+    let nl=e.clientX-parent.left-ox;
+    let nt=e.clientY-parent.top-oy;
+    nl=Math.max(0,Math.min(nl,Math.max(0,parent.width-wr.width)));
+    nt=Math.max(0,Math.min(nt,Math.max(0,parent.height-wr.height)));
+    win.style.left=nl+'px';
+    win.style.top=nt+'px';
   });
   bar.addEventListener('pointerup',e=>{dragging=false; try{bar.releasePointerCapture(e.pointerId);}catch(_){}});
   bar.addEventListener('pointercancel',()=>dragging=false);
