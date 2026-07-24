@@ -231,7 +231,8 @@ input{font-family:inherit;}
   .dock-icon{width:78px;font-size:8px;}
   .dock-icon .glyph{font-size:16px;padding:7px 0;}
   #contact-btn{padding:9px 12px;}
-  .app-window{width:92vw !important;max-height:82vh;}
+  .app-window{position:fixed !important;left:50% !important;top:50% !important;transform:translate(-50%,-50%);width:92vw !important;max-height:82vh;}
+  .app-titlebar{cursor:default;}
   #win-terminal,#win-synth,#win-cam,#win-messenger,#win-route,#win-memory{height:auto;max-height:82vh;}
   #term-output{max-height:34vh;}
   #msg-log{max-height:40vh;}
@@ -729,27 +730,18 @@ document.querySelectorAll('[data-close]').forEach(x=>{
 function openWindow(id){
   if(locked)return;
   const w=document.getElementById(id);
-  const wasHidden=w.classList.contains('hidden');
   w.classList.remove('hidden');
   w.style.zIndex=++zTop;
   beep('high');
   if(id==='win-route')refreshRouteWindow();
   if(id==='win-memory')refreshMemoryWindow();
-  if(wasHidden&&isMobileLayout())centerInMain(w);
-}
-function centerInMain(win){
-  const parent=document.getElementById('os-main').getBoundingClientRect();
-  const wr=win.getBoundingClientRect();
-  const left=Math.max(0,(parent.width-wr.width)/2);
-  const top=Math.max(0,(parent.height-wr.height)/2);
-  win.style.left=left+'px';
-  win.style.top=top+'px';
 }
 function makeDraggable(win){
   const bar=win.querySelector('.app-titlebar');
   let dragging=false,ox=0,oy=0;
   bar.addEventListener('pointerdown',e=>{
     if(e.target.classList.contains('x'))return;
+    if(isMobileLayout())return;
     dragging=true;
     win.style.zIndex=++zTop;
     const r=win.getBoundingClientRect();
@@ -1179,9 +1171,6 @@ document.getElementById('restart-btn').addEventListener('click',()=>location.rel
 function rnd(n){return Math.floor(Math.random()*n);}
 
 })();
-</script>
-</body>
-</html>
 </script>
 </body>
 </html>
