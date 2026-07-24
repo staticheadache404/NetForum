@@ -256,7 +256,7 @@ input{font-family:inherit;}
 </head>
 <body>
 
-<audio id="bgm" src="bgm.mp3" loop preload="auto"></audio>
+<audio id="bgm" src="bgm2.mp3" loop preload="auto"></audio>
 <div id="glitch-flash"></div>
 
 <!-- ===================== ACT 1: NETFORUM ===================== -->
@@ -784,17 +784,17 @@ async function playDialogue(lines){
 
 const introLines=[
   {tag:'high',sender:'SYSTEM',cls:'sys',text:'PROJECT MYOSOTIS INITIALIZED // HUMAN MEMORY CORE ACTIVE'},
-  {tag:'static',sender:'MYOSOTIS CHASE',cls:'chase',text:'"You actually clicked it. Good. I was starting to think my web OS backup would sit here forever."'},
-  {tag:'low',sender:'MYOSOTIS CHASE',cls:'chase',text:'"Listen to me carefully. I am not the thing hunting in the woods right now. I am the digital copy of Chase Miller that I compiled before He rewired my brain."'},
+  {tag:'static',sender:'MYOSOTIS CHASE',cls:'chase',text:'You actually clicked it. Good. I was starting to think my web OS backup would sit here forever.'},
+  {tag:'low',sender:'MYOSOTIS CHASE',cls:'chase',text:'Listen to me carefully. I am not the thing hunting in the woods right now. I am the digital copy of Chase Miller that I compiled before He rewired my brain.'},
   {tag:'err',sender:'MESSENGER ALERT',cls:'alert',text:'USER PROXY_CHASE HAS ENTERED THE ROOM'},
-  {tag:'low',sender:'PROXY CHASE',cls:'proxy',text:'"Look at you digging through old bones. You think a ghost in a green screen is going to save you?"'}
+  {tag:'low',sender:'PROXY CHASE',cls:'proxy',text:'Look at you digging through old bones. You think a ghost in a green screen is going to save you?'}
 ];
 const act4Lines=[
-  {tag:'high',sender:'MYOSOTIS CHASE',cls:'chase',text:'"That worked! You restored my complete memory drive. I can remember my band, my room, my name..."'},
-  {tag:'low',sender:'MYOSOTIS CHASE',cls:'chase',text:'"Wait. You cleared the signal frequency... but that means the line is completely open now."'},
+  {tag:'high',sender:'MYOSOTIS CHASE',cls:'chase',text:'That worked! You restored my complete memory drive. I can remember my band, my room, my name...'},
+  {tag:'low',sender:'MYOSOTIS CHASE',cls:'chase',text:'Wait. You cleared the signal frequency... but that means the line is completely open now.'},
   {tag:'err',sender:'SYSTEM ALERT',cls:'sys',text:'FREQUENCY TETHER ESTABLISHED'},
-  {tag:'static',sender:'PROXY CHASE',cls:'proxy',text:'"Thanks for cleaning up the noise, kid. I needed a clear channel to pinpoint where that connection was coming from."'},
-  {tag:'low',sender:'MYOSOTIS CHASE',cls:'chase',text:'"Disconnect right now! He did not just trace the server, He calibrated his scanner to your device!"'}
+  {tag:'static',sender:'PROXY CHASE',cls:'proxy',text:'Thanks for cleaning up the noise, kid. I needed a clear channel to pinpoint where that connection was coming from.'},
+  {tag:'low',sender:'MYOSOTIS CHASE',cls:'chase',text:'Disconnect right now! He did not just trace the server, He calibrated his scanner to your device!'}
 ];
 
 document.getElementById('contact-btn').addEventListener('click',async function(){
