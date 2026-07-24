@@ -850,7 +850,7 @@ async function showMaraLog(){
   const ov=document.getElementById('modal-overlay');
   document.getElementById('modal-title').textContent='AUDIO LOG // MARA';
   document.getElementById('modal-who').textContent='RECOVERED TRANSMISSION — TIMESTAMP UNKNOWN';
-  document.getElementById('modal-text').textContent='"Chase, He is not a virus or a creature. He is a living transmission that uses human nerve pathways like copper wiring. If you hear the 15kHz tone, turn off your rig."';
+  document.getElementById('modal-text').textContent='Chase, He is not a virus or a creature. He is a living transmission that uses human nerve pathways like copper wiring. If you hear the 15kHz tone, turn off your rig.';
   ov.classList.remove('hidden');
   beep('static');
 }
@@ -935,7 +935,7 @@ async function selectRoute(letter){
     await sleep(350); log.textContent+='\n> NODE_06 CONNECTED... OK';
     await sleep(400); log.textContent+='\n[FIREWALL_BYPASSED] // ACCESS GRANTED TO MYOSOTIS_DIRECTORY';
     await sleep(300);
-    log.textContent+='\n\n[BEEP_LOW] PROXY CHASE: "Not bad. You actually know how to dodge a port scan.\nLet\'s see if you can make sense of what I left behind."';
+    log.textContent+='\n\n[BEEP_LOW] PROXY CHASE: Not bad. You actually know how to dodge a port scan.\nLet\'s see if you can make sense of what I left behind.';
     beep('low');
     unlockSector('mara');
     setCorruption(72);
@@ -973,7 +973,7 @@ async function selectMemory(num){
     await sleep(300);
     log.textContent+='\n\nUNLOCKED HUMAN MEMORY FRAGMENT #02:\n"Oct 12, 2018 - Garage Band Audio Log"\n[AUDIO_PREVIEW]: Strumming guitar chords, laughter in background, tape hiss.';
     await sleep(800);
-    log.textContent+='\n\n[STATIC_HUM] PROXY CHASE: "...Turn that off. I don\'t remember writing that log,\nand I definitely don\'t play guitar anymore."';
+    log.textContent+='\n\n[STATIC_HUM] PROXY CHASE: ...Turn that off. I don\'t remember writing that log,\nand I definitely don\'t play guitar anymore.';
     staticBurst(.4,.08);
     setCorruption(88);
     appendTerm('[SYSTEM]: HUMAN MEMORY FRAGMENT #02 EXTRACTED.');
@@ -1106,8 +1106,8 @@ async function beginEnding(){
   tel.textContent+='\n\n[SIGNAL_CALIBRATED // LOCATION_LOCKED]\n';
   await sleep(700);
   const signalLines=[
-    '[BEEP_LOW] PROXY CHASE: "Nice job on the puzzles, kid. Thanks for holding the frequency open for me."',
-    '[STATIC_HUM] PROXY CHASE: "I don\'t need a video feed to know exactly where you\'re sitting right now."'
+    '[BEEP_LOW] PROXY CHASE: Nice job on the puzzles, kid. Thanks for holding the frequency open for me.',
+    '[STATIC_HUM] PROXY CHASE: I don\'t need a video feed to know exactly where you\'re sitting right now.'
   ];
   for(const l of signalLines){
     tel.textContent+='\n'+l;
