@@ -1,9 +1,19 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>NetForum — Unexplained vocal bleed on custom guitar synth setup</title>
+<!--
+  Required local assets (place in the same folder as this file):
+    bgm.mp3        — looping background music, starts once the player clicks the vault link
+    Camera_01.png  — CCTV still/loop for Cam_Watcher.sys, feed 01 (letter M)
+    Camera_02.png  — feed 02 (letter A)
+    Camera_03.png  — feed 03 (letter R)
+    Camera_04.png  — feed 04 (letter A)
+  Camera images also try .jpg/.jpeg/.webp automatically if .png is missing.
+  If an asset is missing the game degrades gracefully (silent audio / "NO SIGNAL" placeholder).
+-->
 <style>
 :root{
   --green:#2dffb0;
@@ -17,7 +27,7 @@
   --blue:#5fb3ff;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{margin:0;padding:0;width:100%;height:100%;background:#eee;overflow:hidden;font-family:Verdana,Geneva,sans-serif;}
+html,body{margin:0;padding:0;width:100%;height:100%;background:#000;overflow:hidden;font-family:Verdana,Geneva,sans-serif;}
 .hidden{display:none !important;}
 button{font-family:inherit;cursor:pointer;}
 input{font-family:inherit;}
@@ -633,12 +643,22 @@ function staticBurst(duration,vol){
     src.start();
   }catch(e){}
 }
-function startBgm(){
+function unlockAudio(){
   if(bgmStarted)return;
   bgmStarted=true;
+  try{ const c=ensureAudio(); if(c.state==='suspended') c.resume(); }catch(e){}
   const b=document.getElementById('bgm');
-  b.volume=.45;
+  b.volume=0;
   b.play().catch(()=>{});
+}
+function revealBgm(){
+  const b=document.getElementById('bgm');
+  const target=.45;
+  if(b.paused){ b.play().catch(()=>{}); }
+  const iv=setInterval(()=>{
+    b.volume=Math.min(target,(b.volume||0)+.05);
+    if(b.volume>=target)clearInterval(iv);
+  },40);
 }
 document.getElementById('sound-toggle').addEventListener('click',function(){
   muted=!muted;
@@ -653,7 +673,7 @@ function isMobileLayout(){ return window.matchMedia('(max-width:760px)').matches
 /* ---------- act 1: forum -> transition ---------- */
 document.getElementById('vault-link').addEventListener('click',function(e){
   e.preventDefault();
-  ensureAudio();
+  unlockAudio();
   startTransition();
 });
 
@@ -678,7 +698,7 @@ async function startTransition(){
   os.classList.remove('hidden');
   os.classList.add('power-on');
   beep('low');
-  startBgm();
+  revealBgm();
   runBoot();
 }
 
@@ -935,7 +955,7 @@ async function selectRoute(letter){
     await sleep(350); log.textContent+='\n> NODE_06 CONNECTED... OK';
     await sleep(400); log.textContent+='\n[FIREWALL_BYPASSED] // ACCESS GRANTED TO MYOSOTIS_DIRECTORY';
     await sleep(300);
-    log.textContent+='\n\n[BEEP_LOW] PROXY CHASE: Not bad. You actually know how to dodge a port scan.\nLet\'s see if you can make sense of what I left behind.';
+    log.textContent+='\n\n[BEEP_LOW] PROXY CHASE: Not bad. You actually know how to dodge a port scan. Let\'s see if you can make sense of what I left behind.';
     beep('low');
     unlockSector('mara');
     setCorruption(72);
@@ -973,7 +993,7 @@ async function selectMemory(num){
     await sleep(300);
     log.textContent+='\n\nUNLOCKED HUMAN MEMORY FRAGMENT #02:\n"Oct 12, 2018 - Garage Band Audio Log"\n[AUDIO_PREVIEW]: Strumming guitar chords, laughter in background, tape hiss.';
     await sleep(800);
-    log.textContent+='\n\n[STATIC_HUM] PROXY CHASE: ...Turn that off. I don\'t remember writing that log,\nand I definitely don\'t play guitar anymore.';
+    log.textContent+='\n\n[STATIC_HUM] PROXY CHASE: ...Turn that off. I don\'t remember writing that log, and I definitely don\'t play guitar anymore.';
     staticBurst(.4,.08);
     setCorruption(88);
     appendTerm('[SYSTEM]: HUMAN MEMORY FRAGMENT #02 EXTRACTED.');
@@ -1156,3 +1176,5 @@ function rnd(n){return Math.floor(Math.random()*n);}
 
 })();
 </script>
+</body>
+</html>
