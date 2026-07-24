@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>NetForum — Unexplained vocal bleed on custom guitar synth setup</title>
+<!--
+  Required local assets (place in the same folder as this file):
+    bgm.mp3        — looping background music, starts once the player clicks the vault link
+    Camera_01.png  — CCTV still/loop for Cam_Watcher.sys, feed 01 (letter M)
+    Camera_02.png  — feed 02 (letter A)
+    Camera_03.png  — feed 03 (letter R)
+    Camera_04.png  — feed 04 (letter A)
+  Camera images also try .jpg/.jpeg/.webp automatically if .png is missing.
+  If an asset is missing the game degrades gracefully (silent audio / "NO SIGNAL" placeholder).
+-->
+<style>
+:root{
+  --green:#2dffb0;
+  --dim:#124a37;
+  --glow:#062018;
+  --bg:#040907;
+  --panel:#07140f;
+  --red:#ff3b3b;
+  --amber:#ffb020;
+  --yellow:#f4e04d;
+  --blue:#5fb3ff;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;width:100%;height:100%;background:#eee;overflow:hidden;font-family:Verdana,Geneva,sans-serif;}
+.hidden{display:none !important;}
+button{font-family:inherit;cursor:pointer;}
+input{font-family:inherit;}
+::-webkit-scrollbar{width:9px;height:9px;}
+::-webkit-scrollbar-track{background:#000;}
+::-webkit-scrollbar-thumb{background:var(--dim);}
+
+/* ===================== NETFORUM ===================== */
+#screen-forum{position:fixed;inset:0;background:#dfe3e6;overflow-y:auto;-webkit-overflow-scrolling:touch;transition:opacity .5s, filter .5s;}
+.browser-chrome{background:#c9cdd1;border-bottom:1px solid #9aa;padding:6px 10px;display:flex;align-items:center;gap:8px;font-size:12px;color:#333;}
+.browser-dots{display:flex;gap:5px;flex-shrink:0;}
+.browser-dots span{width:9px;height:9px;border-radius:50%;background:#a5a9ad;display:inline-block;}
+.addr-bar{flex:1;background:#fff;border:1px solid #999;border-radius:3px;padding:4px 8px;font-family:Consolas,monospace;font-size:11px;color:#245;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.browser-tab{font-size:11px;color:#556;padding:2px 4px 0;}
+
+.nf-nav{background:linear-gradient(#3b6ea5,#2c5686);color:#fff;padding:10px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;}
+.nf-logo{font-weight:bold;font-size:19px;letter-spacing:.5px;}
+.nf-logo span{color:#bcd7ef;font-weight:normal;font-size:11px;display:block;letter-spacing:1px;}
+.nf-links{font-size:12px;display:flex;gap:12px;}
+.nf-links a{color:#e4eefb;text-decoration:none;}
+.nf-links a:hover{text-decoration:underline;}
+.nf-crumbs{background:#eef2f5;border-bottom:1px solid #c7cdd2;padding:6px 18px;font-size:11px;color:#456;}
+.nf-crumbs a{color:#2c5686;text-decoration:none;}
+
+.nf-wrap{max-width:1000px;margin:16px auto;padding:0 14px 60px;display:flex;gap:16px;}
+.nf-main{flex:1;min-width:0;background:#fff;border:1px solid #c7cdd2;}
+.nf-thread-head{background:#3b6ea5;color:#fff;padding:10px 14px;font-size:15px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;}
+.nf-lockbadge{background:#8b1f1f;color:#ffd;font-size:10px;padding:2px 7px;border-radius:2px;letter-spacing:.5px;flex-shrink:0;}
+.nf-thread-stats{padding:6px 14px;background:#eef2f5;font-size:11px;color:#667;border-bottom:1px solid #d3d8dc;}
+
+.nf-post{display:flex;border-bottom:1px solid #dfe3e6;}
+.nf-post.locked-note{background:#f6efe0;}
+.nf-side{width:150px;flex-shrink:0;padding:12px;background:#f5f7f8;font-size:11px;color:#556;border-right:1px solid #dfe3e6;text-align:center;}
+.nf-avatar{width:56px;height:56px;background:#c7cdd2;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:bold;}
+.nf-uname{font-weight:bold;color:#2c5686;margin-bottom:4px;word-break:break-word;}
+.nf-badge{display:inline-block;background:#8b1f1f;color:#fff;font-size:9px;padding:1px 5px;border-radius:2px;margin-top:4px;}
+.nf-meta{margin-top:6px;line-height:1.5;}
+.nf-body{flex:1;min-width:0;padding:14px 16px;font-size:13px;line-height:1.6;color:#222;}
+.nf-postdate{font-size:11px;color:#889;margin-bottom:8px;}
+.nf-body p{margin:0 0 10px;}
+.nf-vaultlink{color:#1a4faa;text-decoration:underline;font-family:Consolas,monospace;cursor:pointer;word-break:break-all;}
+.nf-vaultlink:hover{color:#ff3b3b;}
+.nf-quote{border-left:3px solid #c7cdd2;background:#f8f9fa;padding:8px 10px;font-size:12px;color:#556;margin:8px 0;}
+
+.nf-sidebar{width:230px;flex-shrink:0;font-size:12px;}
+.nf-box{background:#fff;border:1px solid #c7cdd2;margin-bottom:14px;}
+.nf-box h3{background:#eef2f5;margin:0;padding:8px 10px;font-size:12px;color:#334;border-bottom:1px solid #d3d8dc;}
+.nf-box ul{list-style:none;margin:0;padding:8px 10px;}
+.nf-box li{padding:4px 0;border-bottom:1px dotted #e0e4e7;color:#456;}
+.nf-box li a{color:#2c5686;text-decoration:none;}
+
+.nf-footer{max-width:1000px;margin:0 auto;padding:14px;font-size:10px;color:#889;text-align:center;}
+
+@media (max-width:760px){
+  .nf-wrap{flex-direction:column;margin:10px auto;}
+  .nf-sidebar{width:100%;}
+  .nf-post{flex-direction:column;}
+  .nf-side{width:100%;border-right:none;border-bottom:1px solid #dfe3e6;display:flex;align-items:center;gap:10px;text-align:left;padding:10px;}
+  .nf-avatar{margin:0;width:44px;height:44px;font-size:16px;flex-shrink:0;}
+  .nf-meta{margin-top:0;}
+  .nf-links{font-size:11px;gap:8px;}
+}
+
+/* ===================== TRANSITION FLASH ===================== */
+#glitch-flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:999;}
+
+/* ===================== CRT OS ===================== */
+#screen-os{position:fixed;inset:0;background:var(--bg);color:var(--green);font-family:'Consolas','Courier New',monospace;z-index:20;}
+#screen-os.hidden{display:none;}
+.scanlines{position:fixed;inset:0;pointer-events:none;z-index:500;background:repeating-linear-gradient(100deg, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,.16) 3px, rgba(0,0,0,0) 4px);mix-blend-mode:multiply;}
+.vignette{position:fixed;inset:0;pointer-events:none;z-index:499;box-shadow:inset 0 0 160px rgba(0,0,0,.85);}
+.crt-flicker{position:fixed;inset:0;pointer-events:none;z-index:501;background:#fff;opacity:0;animation:flicker 7s infinite;}
+@keyframes flicker{0%,96%,100%{opacity:0;}97%{opacity:.02;}98%{opacity:0;}99%{opacity:.03;}}
+@keyframes powerOn{0%{transform:scaleY(.005) scaleX(1);filter:brightness(6);opacity:1;}40%{transform:scaleY(.01) scaleX(1);filter:brightness(4);}70%{transform:scaleY(1) scaleX(.02);filter:brightness(3);}100%{transform:scaleY(1) scaleX(1);filter:brightness(1);opacity:1;}}
+.power-on{animation:powerOn .6s ease-out;}
+
+.os-frame{position:relative;width:100%;height:100%;display:flex;flex-direction:column;}
+
+.os-header{border-bottom:1px solid var(--dim);padding:8px 16px;background:linear-gradient(180deg,#0a1a12,transparent);}
+.os-header-row1{display:flex;justify-content:space-between;align-items:center;}
+.os-brand{font-size:15px;letter-spacing:4px;text-shadow:0 0 6px var(--green),0 0 16px var(--glow);}
+.os-controls{display:flex;gap:8px;}
+.os-controls button{background:transparent;border:1px solid var(--dim);color:var(--green);padding:5px 9px;font-size:10px;letter-spacing:1px;}
+.os-controls button:hover{background:var(--glow);}
+.os-header-row2{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:9px;letter-spacing:1px;color:var(--dim);flex-wrap:wrap;gap:6px;}
+.corr-wrap{display:flex;align-items:center;gap:8px;}
+.corr-track{width:120px;height:6px;border:1px solid var(--dim);background:#010401;}
+.corr-fill{height:100%;width:0%;background:var(--green);transition:width .6s ease,background .6s ease;}
+#corr-pct{width:32px;text-align:right;color:var(--green);}
+
+.os-main{flex:1;position:relative;overflow:hidden;margin:10px 12px;border:1px double var(--dim);background:
+  linear-gradient(rgba(45,255,176,.03) 1px, transparent 1px) 0 0/100% 26px,
+  radial-gradient(ellipse at 50% 20%, #08180f 0%, #040907 78%);
+}
+
+.os-dock{display:flex;justify-content:center;align-items:flex-start;gap:18px;padding:10px 14px;border-top:1px solid var(--dim);flex-wrap:wrap;}
+.dock-icon{width:100px;text-align:center;font-size:9px;line-height:1.35;letter-spacing:.2px;cursor:pointer;color:#bdf7cf;user-select:none;overflow-wrap:break-word;word-break:break-word;hyphens:auto;}
+.dock-icon .glyph{font-size:19px;background:rgba(45,255,176,.05);border:1px solid var(--dim);padding:9px 0;margin-bottom:5px;color:var(--green);}
+.dock-icon:hover .glyph,.dock-icon:active .glyph{background:rgba(45,255,176,.18);box-shadow:0 0 10px rgba(45,255,176,.25);}
+
+.os-statusbar{display:flex;justify-content:space-between;align-items:center;padding:9px 16px;border-top:1px solid var(--dim);font-size:10px;letter-spacing:1px;flex-wrap:wrap;gap:8px;}
+#os-status{color:#6ea87e;}
+#contact-btn{background:transparent;border:1px solid var(--green);color:var(--green);padding:7px 14px;font-size:10px;letter-spacing:1px;}
+#contact-btn:hover{background:var(--glow);box-shadow:0 0 12px rgba(45,255,176,.3);}
+
+/* sector drawer (slide-in log, replaces persistent sidebar) */
+#sector-drawer{position:absolute;inset:0;background:rgba(2,8,5,.96);z-index:80;padding:16px;overflow-y:auto;transform:translateX(-100%);transition:transform .35s ease;}
+#sector-drawer.open{transform:translateX(0);}
+#sector-drawer h4{margin:0 0 14px;font-size:11px;letter-spacing:3px;color:var(--dim);display:flex;justify-content:space-between;}
+#sector-drawer .drawer-close{cursor:pointer;color:var(--green);}
+.sector{padding:7px 0;color:#274d31;letter-spacing:.5px;cursor:default;font-size:11px;border-bottom:1px dotted rgba(18,74,55,.5);}
+.sector.unlocked{color:var(--green);text-shadow:0 0 4px var(--glow);}
+.sidebar-note{margin-top:22px;font-size:9px;color:#7a1f1f;line-height:1.5;}
+
+.icons-legacy{display:none;} /* kept out; icons live in dock now */
+
+.app-window{position:absolute;background:#05130c;border:1px solid var(--dim);box-shadow:0 0 30px rgba(45,255,176,.1);display:flex;flex-direction:column;min-width:250px;max-width:92%;max-height:88%;}
+.app-titlebar{background:#0a2016;color:#a9ffc0;padding:7px 10px;font-size:10px;letter-spacing:1px;display:flex;justify-content:space-between;cursor:move;border-bottom:1px solid var(--dim);touch-action:none;}
+.app-titlebar .x{cursor:pointer;padding:0 6px;font-size:13px;}
+.app-titlebar .x:hover{color:#fff;}
+.app-content{padding:12px;font-size:12px;overflow:auto;}
+
+#win-terminal{top:16px;left:16px;width:400px;height:270px;}
+#win-terminal .app-content{display:flex;flex-direction:column;flex:1;padding:0;min-height:0;}
+#term-output{flex:1;overflow-y:auto;padding:10px;color:#8fe0a0;white-space:pre-wrap;line-height:1.5;}
+.term-row{display:flex;gap:6px;padding:8px 10px;border-top:1px solid var(--dim);}
+.term-prompt{color:var(--green);}
+#term-input{flex:1;background:transparent;border:none;outline:none;color:#d8ffe4;font-family:inherit;font-size:14px;min-width:0;}
+
+#win-synth{top:40px;left:40px;width:320px;}
+.synth-bands{display:flex;justify-content:space-around;padding:10px 0 4px;}
+.band{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.light{width:13px;height:13px;border-radius:50%;box-shadow:0 0 8px currentColor;}
+.light.red{background:var(--red);color:var(--red);}
+.light.green{background:#3bff9a;color:#3bff9a;}
+.light.yellow{background:var(--yellow);color:var(--yellow);}
+.vslider{-webkit-appearance:none;appearance:none;width:100px;height:26px;background:transparent;transform:rotate(-90deg);margin:40px 0;touch-action:none;}
+.vslider::-webkit-slider-runnable-track{height:5px;background:var(--dim);}
+.vslider::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;background:var(--green);border:1px solid #0a2016;margin-top:-8px;box-shadow:0 0 6px var(--green);}
+.vslider::-moz-range-track{height:5px;background:var(--dim);}
+.vslider::-moz-range-thumb{width:20px;height:20px;background:var(--green);border:none;box-shadow:0 0 6px var(--green);}
+.band-label{font-size:10px;letter-spacing:1px;color:#9fd;}
+.band-val{font-size:9px;color:var(--dim);}
+.static-viz{display:flex;align-items:flex-end;gap:2px;height:26px;padding:8px 12px;border-top:1px solid var(--dim);border-bottom:1px solid var(--dim);}
+.static-viz i{flex:1;background:var(--dim);opacity:.7;}
+.synth-status{padding:8px 12px;font-size:10px;color:#7fd0a5;letter-spacing:.5px;}
+.synth-clue{padding:0 12px 10px;font-size:10px;color:#5a9d8a;line-height:1.5;}
+
+#win-cam{top:70px;left:70px;width:380px;}
+.cam-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.cam-panel{position:relative;background:#000;border:1px solid var(--dim);aspect-ratio:4/3;overflow:hidden;}
+.cam-panel img{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(.3) contrast(1.1) brightness(.9);}
+.cam-fallback{display:none;position:absolute;inset:0;align-items:center;justify-content:center;color:#3a5;font-size:10px;letter-spacing:1px;background:repeating-linear-gradient(45deg,#050,#050 4px,#030 4px,#030 8px);}
+.cam-header{position:absolute;top:3px;left:4px;font-size:8px;color:#9fd;text-shadow:0 0 3px #000;display:flex;align-items:center;gap:4px;}
+.cam-header .rec{color:var(--red);animation:blink 1s infinite;}
+@keyframes blink{50%{opacity:.2;}}
+.cam-letter{position:absolute;bottom:3px;right:5px;font-size:16px;font-weight:bold;color:var(--green);text-shadow:0 0 6px #000,0 0 4px var(--green);}
+.cam-timestamp{position:absolute;bottom:3px;left:4px;font-size:7px;color:#8c9;text-shadow:0 0 3px #000;}
+.cam-scan{position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(rgba(0,0,0,0) 0px,rgba(0,0,0,0) 2px,rgba(0,0,0,.25) 3px);}
+.cam-clue{margin-top:10px;font-size:10px;color:#5a9d8a;line-height:1.55;}
+.cam-decrypt-row{display:flex;gap:6px;margin-top:8px;}
+#cam-key-input{flex:1;min-width:0;background:#010b06;border:1px solid var(--dim);color:var(--green);padding:8px;font-size:14px;letter-spacing:3px;text-align:center;text-transform:uppercase;outline:none;}
+#cam-key-input:focus{border-color:var(--green);}
+#cam-decrypt-btn{background:transparent;border:1px solid var(--green);color:var(--green);padding:0 12px;font-size:10px;letter-spacing:1px;}
+#cam-decrypt-btn:hover{background:var(--glow);}
+.cam-decrypt-msg{margin-top:6px;font-size:10px;min-height:12px;letter-spacing:.5px;}
+
+#win-messenger{top:20px;left:110px;width:340px;height:320px;}
+#win-messenger .app-content{display:flex;flex-direction:column;flex:1;padding:0;min-height:0;}
+
+#win-route{top:30px;left:160px;width:400px;}
+#win-memory{top:60px;left:200px;width:400px;}
+.locked-msg{color:var(--red);font-size:11px;line-height:1.7;padding:8px 2px;}
+.puzzle-pre{font-size:10px;line-height:1.55;white-space:pre-wrap;color:#8fe0a0;background:#010b06;border:1px solid var(--dim);padding:8px;margin:0 0 10px;max-height:220px;overflow:auto;}
+.puzzle-options{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;}
+.opt-btn{background:transparent;border:1px solid var(--dim);color:var(--green);text-align:left;padding:8px 10px;font-size:10px;font-family:inherit;}
+.opt-btn:hover:not(:disabled){background:var(--glow);border-color:var(--green);}
+.opt-btn:disabled{opacity:.4;}
+.puzzle-msg{font-size:10px;min-height:14px;margin-bottom:6px;letter-spacing:.5px;}
+.puzzle-log{font-size:10px;line-height:1.6;white-space:pre-wrap;color:#8fe0a0;max-height:170px;overflow:auto;margin:0;}
+.block-card{border:1px solid var(--dim);padding:8px 10px;margin-bottom:8px;cursor:pointer;font-size:10px;line-height:1.55;color:#cfe;}
+.block-card:hover{border-color:var(--green);background:var(--glow);}
+.block-card .bh{color:var(--blue);font-size:9px;letter-spacing:.5px;margin-bottom:3px;}
+#msg-log{flex:1;overflow-y:auto;padding:10px;line-height:1.5;}
+.msg-line{margin-bottom:10px;}
+.msg-tag{font-size:9px;padding:1px 4px;margin-right:5px;border:1px solid;letter-spacing:1px;}
+.msg-tag.tag-high{color:var(--yellow);border-color:var(--yellow);}
+.msg-tag.tag-low{color:var(--blue);border-color:var(--blue);}
+.msg-tag.tag-err{color:var(--red);border-color:var(--red);}
+.msg-tag.tag-static{color:#888;border-color:#888;}
+.msg-sender{font-weight:bold;}
+.msg-sender.sys{color:#bdf7cf;}
+.msg-sender.chase{color:var(--green);}
+.msg-sender.proxy{color:var(--red);text-shadow:0 0 4px var(--red);}
+.msg-sender.alert{color:var(--yellow);}
+.msg-text{color:#cfe;}
+.msg-sender.proxy + .msg-text{color:#ffb0b0;}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,10,4,.8);display:flex;align-items:center;justify-content:center;z-index:600;padding:16px;}
+.modal-box{width:min(420px,92vw);max-height:85vh;overflow-y:auto;background:#05130c;border:1px solid var(--green);box-shadow:0 0 40px rgba(45,255,176,.25);}
+.modal-head{background:#0a2016;color:#a9ffc0;padding:8px 12px;font-size:11px;letter-spacing:1px;display:flex;justify-content:space-between;}
+.modal-body{padding:16px;font-size:13px;line-height:1.7;color:#cfe;}
+.modal-body .who{color:var(--blue);font-size:10px;letter-spacing:1px;margin-bottom:8px;}
+
+/* ---- mobile layout for the OS ---- */
+@media (max-width:760px){
+  .os-brand{font-size:12px;letter-spacing:2px;}
+  .os-controls button{padding:6px 8px;font-size:9px;}
+  .corr-track{width:80px;}
+  .os-main{margin:6px;}
+  .dock-icon{width:78px;font-size:8px;}
+  .dock-icon .glyph{font-size:16px;padding:7px 0;}
+  #contact-btn{padding:9px 12px;}
+  .app-window{position:fixed !important;left:50% !important;top:50% !important;transform:translate(-50%,-50%);width:92vw !important;max-height:82vh;}
+  .app-titlebar{cursor:default;}
+  #win-terminal,#win-synth,#win-cam,#win-messenger,#win-route,#win-memory{height:auto;max-height:82vh;}
+  #term-output{max-height:34vh;}
+  #msg-log{max-height:40vh;}
+  #term-input{font-size:16px;}
+  #cam-key-input{font-size:16px;}
+}
+
+/* ===================== ENDING ===================== */
+#screen-ending{position:fixed;inset:0;background:#000;z-index:900;color:var(--green);font-family:'Consolas','Courier New',monospace;display:flex;align-items:center;justify-content:center;padding:16px;}
+#screen-ending.hidden{display:none;}
+#end-narration{font-size:15px;color:#cfe;text-align:center;max-width:640px;line-height:1.9;padding:0 20px;}
+#hex-rain{position:absolute;inset:0;color:var(--dim);font-size:12px;line-height:14px;white-space:pre;overflow:hidden;padding:6px;opacity:.85;}
+#telemetry{width:min(640px,94vw);font-size:13px;line-height:1.9;white-space:pre-wrap;color:var(--green);text-shadow:0 0 4px var(--glow);}
+#poweroff-line{position:absolute;left:0;right:0;top:50%;height:3px;background:#fff;box-shadow:0 0 20px #fff,0 0 40px var(--green);transform:scaleX(0);}
+#end-aftermath{color:#233;font-size:12px;text-align:center;}
+#end-cursor{display:inline-block;animation:blink 1s infinite;}
+#restart-btn{margin-top:26px;background:transparent;border:1px solid #234;color:#456;padding:9px 18px;font-size:11px;letter-spacing:2px;opacity:0;transition:opacity 2s;}
+#restart-btn.show{opacity:1;}
+#restart-btn:hover{border-color:var(--dim);color:var(--dim);}
+</style>
+</head>
+<body>
+
+<audio id="bgm" src="bgm.mp3" loop preload="auto"></audio>
+<div id="glitch-flash"></div>
+
+<!-- ===================== ACT 1: NETFORUM ===================== -->
+<div id="screen-forum">
+  <div class="browser-chrome">
+    <div class="browser-dots"><span></span><span></span><span></span></div>
+    <div class="addr-bar" id="addr-bar">netforum.local/thread/48291-unexplained-vocal-bleed-on-custom-guitar-synth-setup</div>
+  </div>
+  <div class="browser-tab">Unexplained vocal bleed on custom guitar synth setup — NetForum</div>
+
+  <div class="nf-nav">
+    <div class="nf-logo">NetForum<span>audio engineering &amp; field recording community</span></div>
+    <div class="nf-links"><a href="#">Forums</a><a href="#">Members</a><a href="#">Search</a><a href="#">Login</a></div>
+  </div>
+  <div class="nf-crumbs"><a href="#">Home</a> &rsaquo; <a href="#">Audio Engineering</a> &rsaquo; <a href="#">Field Recording &amp; Signal Analysis</a> &rsaquo; Thread #48291</div>
+
+  <div class="nf-wrap">
+    <div class="nf-main">
+      <div class="nf-thread-head">
+        <span>Unexplained vocal bleed on custom guitar synth setup</span>
+        <span class="nf-lockbadge">LOCKED</span>
+      </div>
+      <div class="nf-thread-stats">Views: 14,382 &nbsp;·&nbsp; Replies: 4 &nbsp;·&nbsp; Started Oct 14, 2018</div>
+
+      <div class="nf-post">
+        <div class="nf-side">
+          <div class="nf-avatar">S4</div>
+          <div>
+            <div class="nf-uname">staticheadache404</div>
+            <div class="nf-badge">ACCOUNT DELETED</div>
+            <div class="nf-meta">Member since Mar 2016<br>Posts: 212</div>
+          </div>
+        </div>
+        <div class="nf-body">
+          <div class="nf-postdate">October 14, 2018 — 11:47 PM — Post #1</div>
+          <p>Is anyone near the state pine forest picking up voice chatter on custom audio rigs? In 2017 my garage band synth pedals started picking up rhythmic static and number sequences. It is not coming from cell towers or local radio. The signal is broadcasting from deep beneath the roots of the trees.</p>
+          <p>My co researcher @mara_null stopped answering her phone two weeks ago after tracing the broadcast node. I built a private web OS server to archive our research and store my personal consciousness backup before my own mind gets rewired:</p>
+          <p><a href="#" class="nf-vaultlink" id="vault-link">http://vault.static404.local/memory</a></p>
+          <p>Check the server logs if you want to know what is actually under the forest.</p>
+        </div>
+      </div>
+
+      <div class="nf-post">
+        <div class="nf-side">
+          <div class="nf-avatar">?</div>
+          <div>
+            <div class="nf-uname">User9901</div>
+            <div class="nf-meta">Joined Oct 2018<br>Posts: 1</div>
+          </div>
+        </div>
+        <div class="nf-body">
+          <div class="nf-postdate">October 15, 2018 — 12:03 AM — Post #2</div>
+          <p>Do not open that link. staticheadache404 went missing shortly after posting this. Cops found his car by the trailhead with his laptop still logged into that web server. If you connect, the proxy relay locks onto your IP address and never shuts off.</p>
+        </div>
+      </div>
+
+      <div class="nf-post">
+        <div class="nf-side">
+          <div class="nf-avatar">SD</div>
+          <div>
+            <div class="nf-uname">SynthDadGarage77</div>
+            <div class="nf-meta">Joined Jan 2015<br>Posts: 3,004</div>
+          </div>
+        </div>
+        <div class="nf-body">
+          <div class="nf-postdate">October 15, 2018 — 8:41 AM — Post #3</div>
+          <p>Ground loop hum from a bad cable shield, 99% of the time. Check your grounding before you start writing sci-fi novels lol. Also "researcher"? On what, exactly.</p>
+        </div>
+      </div>
+
+      <div class="nf-post">
+        <div class="nf-side">
+          <div class="nf-avatar">PF</div>
+          <div>
+            <div class="nf-uname">pineforest_kid</div>
+            <div class="nf-meta">Joined Sep 2018<br>Posts: 6</div>
+          </div>
+        </div>
+        <div class="nf-body">
+          <div class="nf-postdate">October 16, 2018 — 2:15 AM — Post #4</div>
+          <p>i used to camp near there with my dad. one night the walkie talkies picked up something counting backwards in a voice that sounded like my brother. my brother died in 2015. i haven't been back since. delete this if i'm not supposed to say that.</p>
+        </div>
+      </div>
+
+      <div class="nf-post locked-note">
+        <div class="nf-side">
+          <div class="nf-avatar">EW</div>
+          <div>
+            <div class="nf-uname">EchoWarden</div>
+            <div class="nf-badge" style="background:#556;">MODERATOR</div>
+          </div>
+        </div>
+        <div class="nf-body">
+          <div class="nf-postdate">October 22, 2018 — Moderator Action</div>
+          <p class="nf-quote">This thread has been locked. Reason: unverified claims / possible user welfare concern. Users are reminded not to attempt contact with external links posted by inactive or deleted accounts.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="nf-sidebar">
+      <div class="nf-box">
+        <h3>Similar Threads</h3>
+        <ul>
+          <li><a href="#">15kHz whine on all my recordings??</a></li>
+          <li><a href="#">Anyone else's DAW clock drifting at night</a></li>
+          <li><a href="#">Missing person - Mara N., last seen near Rt.9</a></li>
+          <li><a href="#">Old field recordings from the tower site</a></li>
+        </ul>
+      </div>
+      <div class="nf-box">
+        <h3>Forum Stats</h3>
+        <ul>
+          <li>Members: 48,113</li>
+          <li>Threads: 219,004</li>
+          <li>Online now: 3 (2 guests)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="nf-footer">NetForum &copy; 2011–2019 — archived, read-only mirror. Original community discontinued.</div>
+</div>
+
+<!-- ===================== ACT 2–4: CRT WEB OS ===================== -->
+<div id="screen-os" class="hidden">
+  <div class="scanlines"></div>
+  <div class="vignette"></div>
+  <div class="crt-flicker"></div>
+
+  <div class="os-frame">
+    <div class="os-header">
+      <div class="os-header-row1">
+        <span class="os-brand">ECHOING_VAULT</span>
+        <div class="os-controls">
+          <button id="sector-toggle">[LOG]</button>
+          <button id="sound-toggle">[SND:ON]</button>
+        </div>
+      </div>
+      <div class="os-header-row2">
+        <span id="os-subtitle">SYSTEM_OVERRIDE // CORRUPTION_LOG_0x00</span>
+        <div class="corr-wrap"><span>CORRUPTION</span><div class="corr-track"><div class="corr-fill" id="corr-fill"></div></div><span id="corr-pct">0%</span></div>
+      </div>
+    </div>
+
+    <div class="os-main" id="os-main">
+
+      <div id="sector-drawer">
+        <h4>MEMORY SECTORS <span class="drawer-close" id="drawer-close">CLOSE ×</span></h4>
+        <div class="sector" data-sector="boot"><span class="dot">·</span> ACT_01 // BOOT</div>
+        <div class="sector" data-sector="contact"><span class="dot">·</span> SECTOR_01 // CONTACT</div>
+        <div class="sector" data-sector="bleed"><span class="dot">·</span> SECTOR_02 // BLEED</div>
+        <div class="sector" data-sector="mara"><span class="dot">·</span> SECTOR_03 // MARA</div>
+        <div class="sector" data-sector="confront"><span class="dot">·</span> SECTOR_04 // CONFRONT</div>
+        <div class="sector" data-sector="closing"><span class="dot">·</span> ACT_03 // CLOSING</div>
+        <div class="sidebar-note">[!] UNAUTHORIZED ACCESS DETECTED. LOGGING CONTINUES REGARDLESS.</div>
+      </div>
+
+      <div class="app-window hidden" id="win-terminal">
+        <div class="app-titlebar"><span>Terminal_v1.0.exe</span><span class="x" data-close="win-terminal">×</span></div>
+        <div class="app-content">
+          <div id="term-output"></div>
+          <div class="term-row"><span class="term-prompt">vault&gt;</span><input id="term-input" autocomplete="off" spellcheck="false"></div>
+        </div>
+      </div>
+
+      <div class="app-window hidden" id="win-synth">
+        <div class="app-titlebar"><span>LoFi_Synthesizer.app</span><span class="x" data-close="win-synth">×</span></div>
+        <div class="app-content">
+          <div class="synth-bands">
+            <div class="band">
+              <div class="light red"></div>
+              <div class="band-label">LOW</div>
+              <input type="range" class="vslider" id="s-low" min="0" max="2" step="1" value="0">
+              <div class="band-val" id="v-low">LOW</div>
+            </div>
+            <div class="band">
+              <div class="light green"></div>
+              <div class="band-label">MID</div>
+              <input type="range" class="vslider" id="s-mid" min="0" max="2" step="1" value="1">
+              <div class="band-val" id="v-mid">MID</div>
+            </div>
+            <div class="band">
+              <div class="light yellow"></div>
+              <div class="band-label">HIGH</div>
+              <input type="range" class="vslider" id="s-high" min="0" max="2" step="1" value="2">
+              <div class="band-val" id="v-high">HIGH</div>
+            </div>
+          </div>
+          <div class="static-viz" id="static-viz"></div>
+          <div class="synth-status" id="synth-status">STATIC BLEED: ACTIVE</div>
+          <div class="synth-clue">Match each slider to its target light position to eliminate static bleed.</div>
+        </div>
+      </div>
+
+      <div class="app-window hidden" id="win-cam">
+        <div class="app-titlebar"><span>Cam_Watcher.sys</span><span class="x" data-close="win-cam">×</span></div>
+        <div class="app-content">
+          <div class="cam-grid">
+            <div class="cam-panel">
+              <img data-base="Camera_01" src="Camera_01.png" alt="Camera 01 feed" onerror="handleCamError(this)">
+              <div class="cam-fallback">[ NO SIGNAL ]</div>
+              <div class="cam-scan"></div>
+              <div class="cam-header"><span class="rec">●</span>CAM_01</div>
+              <div class="cam-timestamp">10:47:02</div>
+              <div class="cam-letter">M</div>
+            </div>
+            <div class="cam-panel">
+              <img data-base="Camera_02" src="Camera_02.png" alt="Camera 02 feed" onerror="handleCamError(this)">
+              <div class="cam-fallback">[ NO SIGNAL ]</div>
+              <div class="cam-scan"></div>
+              <div class="cam-header"><span class="rec">●</span>CAM_02</div>
+              <div class="cam-timestamp">10:47:02</div>
+              <div class="cam-letter">A</div>
+            </div>
+            <div class="cam-panel">
+              <img data-base="Camera_03" src="Camera_03.png" alt="Camera 03 feed" onerror="handleCamError(this)">
+              <div class="cam-fallback">[ NO SIGNAL ]</div>
+              <div class="cam-scan"></div>
+              <div class="cam-header"><span class="rec">●</span>CAM_03</div>
+              <div class="cam-timestamp">10:47:02</div>
+              <div class="cam-letter">R</div>
+            </div>
+            <div class="cam-panel">
+              <img data-base="Camera_04" src="Camera_04.png" alt="Camera 04 feed" onerror="handleCamError(this)">
+              <div class="cam-fallback">[ NO SIGNAL ]</div>
+              <div class="cam-scan"></div>
+              <div class="cam-header"><span class="rec">●</span>CAM_04</div>
+              <div class="cam-timestamp">10:47:02</div>
+              <div class="cam-letter">A</div>
+            </div>
+          </div>
+          <div class="cam-clue">Each feed timestamps one highlighted letter. Combine all four into a name, then decrypt FOLDER_ALPHA below (requires audio calibration first).</div>
+          <div class="cam-decrypt-row">
+            <input id="cam-key-input" maxlength="4" placeholder="INPUT KEY" autocomplete="off" spellcheck="false">
+            <button id="cam-decrypt-btn">DECRYPT</button>
+          </div>
+          <div class="cam-decrypt-msg" id="cam-decrypt-msg"></div>
+        </div>
+      </div>
+
+      <div class="app-window hidden" id="win-messenger">
+        <div class="app-titlebar"><span>Messenger.sys</span><span class="x" data-close="win-messenger">×</span></div>
+        <div class="app-content">
+          <div id="msg-log"><div class="msg-line" style="color:#456">AWAITING SIGNAL... establish contact from the status bar below.</div></div>
+        </div>
+      </div>
+
+      <div class="app-window hidden" id="win-route">
+        <div class="app-titlebar"><span>ROUTE_OVERRIDE.sys</span><span class="x" data-close="win-route">×</span></div>
+        <div class="app-content">
+          <div id="route-locked" class="locked-msg">ACCESS DENIED // FOLDER_ALPHA NOT MOUNTED.<br>Decrypt Cam_Watcher.sys first.</div>
+          <div id="route-body" class="hidden">
+            <pre class="puzzle-pre">[SYSTEM_ALERT]: FIREWALL_INTERCEPT // SELECT ROUTING PATH
+--------------------------------------------------------------------------
+DIAGNOSTIC MANIFEST: AVAILABLE NODES
+--------------------------------------------------------------------------
+NODE_01  |  PORT: 443   |  STATUS: ONLINE     |  PROTOCOL: SECURE
+NODE_02  |  PORT: 8080  |  STATUS: ONLINE     |  PROTOCOL: SECURE
+NODE_03  |  PORT: 22    |  STATUS: CORRUPTED  |  PROTOCOL: UNSTABLE
+NODE_04  |  PORT: 443   |  STATUS: ONLINE     |  PROTOCOL: SECURE
+NODE_05  |  PORT: 8080  |  STATUS: INFECTED   |  PROTOCOL: CRITICAL
+NODE_06  |  PORT: 22    |  STATUS: ONLINE     |  PROTOCOL: SECURE
+--------------------------------------------------------------------------
+
+[README.TXT // SYS_ADMIN_NOTE]:
+"If you're trying to bypass the perimeter alert, trace a 3-node
+ sequence:
+ 1. NEVER connect to a node flagged as CORRUPTED or INFECTED.
+ 2. Avoid PORT 8080 -- 'He' is actively sniffing traffic on that port.
+ 3. Your sequence must start with the lowest-numbered valid node,
+    then move forward in ascending order for a clean relay path."</pre>
+            <div class="puzzle-options" id="route-options">
+              <button class="opt-btn" data-letter="a">[A] ROUTE NODE_01 &rarr; NODE_02 &rarr; NODE_06</button>
+              <button class="opt-btn" data-letter="b">[B] ROUTE NODE_01 &rarr; NODE_04 &rarr; NODE_06</button>
+              <button class="opt-btn" data-letter="c">[C] ROUTE NODE_03 &rarr; NODE_04 &rarr; NODE_05</button>
+              <button class="opt-btn" data-letter="d">[D] ROUTE NODE_02 &rarr; NODE_04 &rarr; NODE_06</button>
+            </div>
+            <div class="puzzle-msg" id="route-msg"></div>
+            <pre class="puzzle-log" id="route-log"></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="app-window hidden" id="win-memory">
+        <div class="app-titlebar"><span>MYOSOTIS_VAULT.dec</span><span class="x" data-close="win-memory">×</span></div>
+        <div class="app-content">
+          <div id="memory-locked" class="locked-msg">ACCESS DENIED // MYOSOTIS_DIRECTORY NOT MOUNTED.<br>Complete ROUTE_OVERRIDE.sys first.</div>
+          <div id="memory-body" class="hidden">
+            <div class="puzzle-pre" style="margin-bottom:10px;">SELECT THE UNCORRUPTED HUMAN MEMORY BLOCK TO COMPILE KEY</div>
+            <div class="block-card" data-block="01"><div class="bh">BLOCK_LOG_01 — OCT 12, 2018 — HASH: VERIFIED</div>"Finished soldering the custom fuzz pedal for garage practice tonight. Mara complained about the ground hum, but it sounds fine to me."</div>
+            <div class="block-card" data-block="02"><div class="bh">BLOCK_LOG_02 — NOV 03, 2018 — HASH: TAMPERED</div>"The fog in the state pine park didn't clear all afternoon. I swear the radio static was pronouncing my real name when I turned the knob."</div>
+            <div class="block-card" data-block="03"><div class="bh">BLOCK_LOG_03 — JAN 15, 2019 — HASH: VERIFIED</div>"Skipped my computer science midterm today to test the signal receiver rig near the old broadcast tower roots."</div>
+            <div class="block-card" data-block="04"><div class="bh">BLOCK_LOG_04 — SEP 28, 2018 — HASH: TAMPERED</div>"He told me how to rewrite the local grid parameters today. My head has been buzzing at 15kHz ever since."</div>
+            <pre class="puzzle-pre">[SYSTEM FILTER CRITERIA]:
+- Authentic memories were recorded strictly in 2018 (prior to disappearance).
+- Authentic memories have a VERIFIED security hash.
+- Authentic memories NEVER mention "fog", "static", "broadcast tower", or "He".</pre>
+            <div class="puzzle-msg" id="memory-msg"></div>
+            <pre class="puzzle-log" id="memory-log"></pre>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="os-dock">
+      <div class="dock-icon" data-app="terminal"><div class="glyph">&gt;_</div>Terminal_v1.0.exe</div>
+      <div class="dock-icon" data-app="synth"><div class="glyph">≈</div>LoFi_Synthesizer.app</div>
+      <div class="dock-icon" data-app="cam"><div class="glyph">◉</div>Cam_Watcher.sys</div>
+      <div class="dock-icon" data-app="messenger"><div class="glyph">✉</div>Messenger.sys</div>
+      <div class="dock-icon" data-app="route"><div class="glyph">⇄</div>ROUTE_OVERRIDE.sys</div>
+      <div class="dock-icon" data-app="memory"><div class="glyph">▣</div>MYOSOTIS_VAULT.dec</div>
+    </div>
+
+    <div class="os-statusbar">
+      <span id="os-status">AWAITING INPUT</span>
+      <button id="contact-btn">&gt; ESTABLISH_CONTACT_</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-head"><span id="modal-title">AUDIO LOG</span><span class="x" id="modal-close" style="cursor:pointer">×</span></div>
+    <div class="modal-body"><div class="who" id="modal-who"></div><div id="modal-text"></div></div>
+  </div>
+</div>
+
+<!-- ===================== ACT 5: ENDING ===================== -->
+<div id="screen-ending" class="hidden">
+  <pre id="hex-rain" class="hidden"></pre>
+  <div id="end-narration" class="hidden"></div>
+  <pre id="telemetry" class="hidden"></pre>
+  <div id="poweroff-line" class="hidden"></div>
+  <div id="end-aftermath" class="hidden">
+    <span id="end-cursor">_</span>
+    <div><button id="restart-btn">[ RESTART TRANSMISSION ]</button></div>
+  </div>
+</div>
+
+<script>
+(function(){
+
+/* ---------- audio ---------- */
+let actx=null, bgmStarted=false, muted=false;
+function ensureAudio(){ if(!actx){ actx=new (window.AudioContext||window.webkitAudioContext)(); } return actx; }
+function beep(type){
+  try{
+    const c=ensureAudio();
+    const o=c.createOscillator(), g=c.createGain();
+    let freq=440,dur=.12,wave='square';
+    if(type==='high'){freq=1500;dur=.09;}
+    else if(type==='low'){freq=210;dur=.16;}
+    else if(type==='err'){freq=130;dur=.4;wave='sawtooth';}
+    else if(type==='ok'){freq=900;dur=.2;}
+    o.type=wave;o.frequency.value=freq;
+    g.gain.setValueAtTime(.0001,c.currentTime);
+    g.gain.exponentialRampToValueAtTime(.14,c.currentTime+.01);
+    g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+dur);
+    o.connect(g).connect(c.destination);
+    o.start();o.stop(c.currentTime+dur+.02);
+  }catch(e){}
+}
+function staticBurst(duration,vol){
+  try{
+    const c=ensureAudio();
+    const n=Math.floor(c.sampleRate*duration);
+    const buf=c.createBuffer(1,n,c.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<n;i++)d[i]=Math.random()*2-1;
+    const src=c.createBufferSource();src.buffer=buf;
+    const g=c.createGain();g.gain.value=vol;
+    src.connect(g).connect(c.destination);
+    src.start();
+  }catch(e){}
+}
+function startBgm(){
+  if(bgmStarted)return;
+  bgmStarted=true;
+  const b=document.getElementById('bgm');
+  b.volume=.45;
+  b.play().catch(()=>{});
+}
+document.getElementById('sound-toggle').addEventListener('click',function(){
+  muted=!muted;
+  const b=document.getElementById('bgm');
+  b.muted=muted;
+  this.textContent=muted?'[SND:MUTE]':'[SND:ON]';
+});
+
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function isMobileLayout(){ return window.matchMedia('(max-width:760px)').matches; }
+
+/* ---------- act 1: forum -> transition ---------- */
+document.getElementById('vault-link').addEventListener('click',function(e){
+  e.preventDefault();
+  ensureAudio();
+  startTransition();
+});
+
+async function startTransition(){
+  document.getElementById('addr-bar').textContent='http://vault.static404.local/memory';
+  const forum=document.getElementById('screen-forum');
+  const flash=document.getElementById('glitch-flash');
+  staticBurst(.5,.2);
+  forum.style.filter='brightness(2) saturate(0)';
+  flash.style.transition='opacity .08s';
+  flash.style.opacity='1';
+  await sleep(90);
+  flash.style.opacity='0';
+  await sleep(90);
+  flash.style.opacity='.8';
+  await sleep(60);
+  flash.style.opacity='0';
+  forum.style.opacity='0';
+  await sleep(500);
+  forum.classList.add('hidden');
+  const os=document.getElementById('screen-os');
+  os.classList.remove('hidden');
+  os.classList.add('power-on');
+  beep('low');
+  startBgm();
+  runBoot();
+}
+
+/* ---------- boot text ---------- */
+async function runBoot(){
+  const lines=[
+    'INITIALIZING VAULT_OS...',
+    'MOUNTING /dev/memory_core... OK',
+    'DECRYPTING USER PROFILE: static404... OK',
+    'LOADING DESKTOP ENVIRONMENT...'
+  ];
+  setStatus('BOOTING VAULT_OS...');
+  unlockSector('boot');
+  setCorruption(8);
+  openWindow('win-terminal');
+  for(const l of lines){
+    appendTerm(l);
+    beep('low');
+    await sleep(380);
+  }
+  appendTerm('\nType "help" for available commands.');
+  setStatus('AWAITING INPUT');
+}
+
+/* ---------- window manager ---------- */
+let zTop=10;
+document.querySelectorAll('.dock-icon').forEach(icon=>{
+  icon.addEventListener('click',()=>openWindow('win-'+icon.dataset.app));
+});
+document.querySelectorAll('[data-close]').forEach(x=>{
+  x.addEventListener('click',()=>document.getElementById(x.dataset.close).classList.add('hidden'));
+});
+function openWindow(id){
+  if(locked)return;
+  const w=document.getElementById(id);
+  w.classList.remove('hidden');
+  w.style.zIndex=++zTop;
+  beep('high');
+  if(id==='win-route')refreshRouteWindow();
+  if(id==='win-memory')refreshMemoryWindow();
+}
+function makeDraggable(win){
+  const bar=win.querySelector('.app-titlebar');
+  let dragging=false,ox=0,oy=0;
+  bar.addEventListener('pointerdown',e=>{
+    if(e.target.classList.contains('x'))return;
+    if(isMobileLayout())return;
+    dragging=true;
+    win.style.zIndex=++zTop;
+    const r=win.getBoundingClientRect();
+    ox=e.clientX-r.left; oy=e.clientY-r.top;
+    bar.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  bar.addEventListener('pointermove',e=>{
+    if(!dragging)return;
+    const parent=document.getElementById('os-main').getBoundingClientRect();
+    win.style.left=Math.max(0,e.clientX-parent.left-ox)+'px';
+    win.style.top=Math.max(0,e.clientY-parent.top-oy)+'px';
+  });
+  bar.addEventListener('pointerup',e=>{dragging=false; try{bar.releasePointerCapture(e.pointerId);}catch(_){}});
+  bar.addEventListener('pointercancel',()=>dragging=false);
+  win.addEventListener('pointerdown',()=>{win.style.zIndex=++zTop;});
+}
+document.querySelectorAll('.app-window').forEach(makeDraggable);
+
+/* ---------- sector drawer ---------- */
+document.getElementById('sector-toggle').addEventListener('click',()=>{
+  document.getElementById('sector-drawer').classList.add('open');
+});
+document.getElementById('drawer-close').addEventListener('click',()=>{
+  document.getElementById('sector-drawer').classList.remove('open');
+});
+
+function unlockSector(id){
+  const el=document.querySelector('.sector[data-sector="'+id+'"]');
+  if(el)el.classList.add('unlocked');
+}
+function setCorruption(pct){
+  document.getElementById('corr-fill').style.width=pct+'%';
+  document.getElementById('corr-pct').textContent=pct+'%';
+  const fill=document.getElementById('corr-fill');
+  fill.style.background = pct<40?'#2dffb0':(pct<75?'#ffb020':'#ff3b3b');
+  document.getElementById('os-subtitle').textContent='SYSTEM_OVERRIDE // CORRUPTION_LOG_0x'+String(Math.floor(pct/10)).padStart(2,'0');
+}
+function setStatus(t){document.getElementById('os-status').textContent=t;}
+
+/* ---------- messenger ---------- */
+const msgLog=document.getElementById('msg-log');
+async function playDialogue(lines){
+  openWindow('win-messenger');
+  for(const l of lines){
+    const div=document.createElement('div');
+    div.className='msg-line';
+    const tagSpan = l.tag ? '<span class="msg-tag tag-'+l.tag+'">['+l.tag.toUpperCase()+']</span>' : '';
+    div.innerHTML = tagSpan+'<span class="msg-sender '+l.cls+'">'+l.sender+':</span> <span class="msg-text">'+l.text+'</span>';
+    msgLog.appendChild(div);
+    msgLog.scrollTop=msgLog.scrollHeight;
+    if(l.tag==='static')staticBurst(.4,.06); else beep(l.tag||'low');
+    await sleep(1500+Math.random()*500);
+  }
+}
+
+const introLines=[
+  {tag:'high',sender:'SYSTEM',cls:'sys',text:'PROJECT MYOSOTIS INITIALIZED // HUMAN MEMORY CORE ACTIVE'},
+  {tag:'static',sender:'MYOSOTIS CHASE',cls:'chase',text:'"You actually clicked it. Good. I was starting to think my web OS backup would sit here forever."'},
+  {tag:'low',sender:'MYOSOTIS CHASE',cls:'chase',text:'"Listen to me carefully. I am not the thing hunting in the woods right now. I am the digital copy of Chase Miller that I compiled before He rewired my brain."'},
+  {tag:'err',sender:'MESSENGER ALERT',cls:'alert',text:'USER PROXY_CHASE HAS ENTERED THE ROOM'},
+  {tag:'low',sender:'PROXY CHASE',cls:'proxy',text:'"Look at you digging through old bones. You think a ghost in a green screen is going to save you?"'}
+];
+const act4Lines=[
+  {tag:'high',sender:'MYOSOTIS CHASE',cls:'chase',text:'"That worked! You restored my complete memory drive. I can remember my band, my room, my name..."'},
+  {tag:'low',sender:'MYOSOTIS CHASE',cls:'chase',text:'"Wait. You cleared the signal frequency... but that means the line is completely open now."'},
+  {tag:'err',sender:'SYSTEM ALERT',cls:'sys',text:'FREQUENCY TETHER ESTABLISHED'},
+  {tag:'static',sender:'PROXY CHASE',cls:'proxy',text:'"Thanks for cleaning up the noise, kid. I needed a clear channel to pinpoint where that connection was coming from."'},
+  {tag:'low',sender:'MYOSOTIS CHASE',cls:'chase',text:'"Disconnect right now! He did not just trace the server, He calibrated his scanner to your device!"'}
+];
+
+document.getElementById('contact-btn').addEventListener('click',async function(){
+  if(locked)return;
+  this.disabled=true;
+  msgLog.innerHTML='';
+  setStatus('MESSENGER: INCOMING TRANSMISSION');
+  await playDialogue(introLines);
+  unlockSector('contact');
+  setCorruption(25);
+  setStatus('AWAITING INPUT');
+  this.textContent='> CONTACT ESTABLISHED';
+});
+
+/* ---------- puzzle 1: synthesizer ---------- */
+const target={low:2,mid:0,high:1}; // LOW->HIGH, MID->LOW, HIGH->MID
+const labels=['LOW','MID','HIGH'];
+let synthSolved=false;
+['low','mid','high'].forEach(band=>{
+  const s=document.getElementById('s-'+band);
+  const v=document.getElementById('v-'+band);
+  s.addEventListener('input',()=>{
+    v.textContent=labels[+s.value];
+    checkSynth();
+  });
+});
+const vizBars=[];
+const viz=document.getElementById('static-viz');
+for(let i=0;i<24;i++){const b=document.createElement('i');viz.appendChild(b);vizBars.push(b);}
+let vizAmp=1;
+setInterval(()=>{
+  vizBars.forEach(b=>{b.style.height=(2+Math.random()*24*vizAmp)+'px';});
+},110);
+
+function checkSynth(){
+  if(synthSolved)return;
+  const low=+document.getElementById('s-low').value;
+  const mid=+document.getElementById('s-mid').value;
+  const high=+document.getElementById('s-high').value;
+  if(low===target.low&&mid===target.mid&&high===target.high){
+    synthSolved=true;
+    vizAmp=0.05;
+    document.getElementById('synth-status').textContent='STATIC BLEED: ELIMINATED';
+    beep('ok');
+    unlockSector('bleed');
+    setCorruption(45);
+    appendTerm('\n[NEW DIRECTIVE] Cam_Watcher.sys has a hidden 4-letter designation. Read the feeds, then decrypt it there.');
+    showMaraLog();
+  }
+}
+async function showMaraLog(){
+  await sleep(600);
+  const ov=document.getElementById('modal-overlay');
+  document.getElementById('modal-title').textContent='AUDIO LOG // MARA';
+  document.getElementById('modal-who').textContent='RECOVERED TRANSMISSION — TIMESTAMP UNKNOWN';
+  document.getElementById('modal-text').textContent='"Chase, He is not a virus or a creature. He is a living transmission that uses human nerve pathways like copper wiring. If you hear the 15kHz tone, turn off your rig."';
+  ov.classList.remove('hidden');
+  beep('static');
+}
+document.getElementById('modal-close').addEventListener('click',()=>document.getElementById('modal-overlay').classList.add('hidden'));
+
+/* ---------- cam feed image fallback ---------- */
+window.handleCamError=function(img){
+  const tries=img.dataset.tries?parseInt(img.dataset.tries):0;
+  const exts=['jpg','jpeg','webp'];
+  if(tries<exts.length){
+    img.dataset.tries=tries+1;
+    img.src=img.dataset.base+'.'+exts[tries];
+  }else{
+    img.style.display='none';
+    img.nextElementSibling.style.display='flex';
+  }
+};
+
+/* ---------- puzzle 2: cam decrypt + terminal ---------- */
+let camSolved=false, routeSolved=false, memorySolved=false;
+const termOut=document.getElementById('term-output');
+const termIn=document.getElementById('term-input');
+function appendTerm(t){
+  termOut.textContent+=(termOut.textContent?'\n':'')+t;
+  termOut.scrollTop=termOut.scrollHeight;
+}
+termIn.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    const cmd=termIn.value.trim();
+    appendTerm('vault> '+cmd);
+    runCommand(cmd);
+    termIn.value='';
+  }
+});
+function runCommand(raw){
+  const cmd=raw.toLowerCase().trim();
+  if(cmd==='help'){
+    appendTerm('COMMANDS: help, ls, cat <file>, clear\nEnter the four letter name of the lost co researcher to unlock folder Alpha.\nOther puzzles live in their own desktop apps: ROUTE_OVERRIDE.sys and MYOSOTIS_VAULT.dec.');
+  }else if(cmd==='ls'){
+    appendTerm('readme.txt'+(camSolved?'\nFOLDER_ALPHA/\n  project_myosotis.dec':'\nFOLDER_ALPHA  [LOCKED]'));
+  }else if(cmd==='cat readme.txt'){
+    appendTerm('VAULT_OS backup archive.\nRun the LoFi_Synthesizer.app to clear signal static.\nCheck Cam_Watcher.sys for identifying data.');
+  }else if(cmd==='cat folder_alpha/project_myosotis.dec'||cmd==='cat project_myosotis.dec'){
+    if(camSolved) appendTerm('PROJECT_MYOSOTIS: a consciousness-mapping process built to store a human mind as a running process. Subject: Chase Miller. Status: INCOMPLETE.');
+    else appendTerm('ACCESS DENIED.');
+  }else if(cmd==='clear'){
+    termOut.textContent='';
+  }else if(cmd==='mara'||cmd==='unlock mara'||cmd==='decrypt mara'){
+    attemptMara();
+  }else if(cmd===''){
+    // noop
+  }else{
+    appendTerm('UNKNOWN COMMAND. Type "help".');
+    beep('err');
+  }
+}
+
+/* ---------- puzzle 3: ROUTE_OVERRIDE.sys (own app window) ---------- */
+function refreshRouteWindow(){
+  const locked=document.getElementById('route-locked');
+  const body=document.getElementById('route-body');
+  if(!camSolved){ locked.classList.remove('hidden'); body.classList.add('hidden'); return; }
+  locked.classList.add('hidden'); body.classList.remove('hidden');
+  document.querySelectorAll('#route-options .opt-btn').forEach(b=>b.disabled=routeSolved);
+}
+document.querySelectorAll('#route-options .opt-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>selectRoute(btn.dataset.letter));
+});
+async function selectRoute(letter){
+  if(!camSolved||routeSolved)return;
+  const msg=document.getElementById('route-msg');
+  const log=document.getElementById('route-log');
+  if(letter==='b'){
+    routeSolved=true;
+    document.querySelectorAll('#route-options .opt-btn').forEach(b=>b.disabled=true);
+    msg.textContent='PATH ACCEPTED.';
+    msg.style.color='var(--green)';
+    beep('ok');
+    log.textContent='[EXECUTING ROUTE_OVERRIDE...]';
+    await sleep(350); log.textContent+='\n> NODE_01 CONNECTED... OK';
+    await sleep(350); log.textContent+='\n> NODE_04 CONNECTED... OK';
+    await sleep(350); log.textContent+='\n> NODE_06 CONNECTED... OK';
+    await sleep(400); log.textContent+='\n[FIREWALL_BYPASSED] // ACCESS GRANTED TO MYOSOTIS_DIRECTORY';
+    await sleep(300);
+    log.textContent+='\n\n[BEEP_LOW] PROXY CHASE: "Not bad. You actually know how to dodge a port scan.\nLet\'s see if you can make sense of what I left behind."';
+    beep('low');
+    unlockSector('mara');
+    setCorruption(72);
+    appendTerm('[SYSTEM]: FIREWALL_BYPASSED. Open MYOSOTIS_VAULT.dec to continue.');
+  }else{
+    msg.textContent='CONNECTION REFUSED // INVALID PATH.';
+    msg.style.color='var(--red)';
+    beep('err');
+  }
+}
+
+/* ---------- puzzle 4: MYOSOTIS_VAULT.dec (own app window) ---------- */
+function refreshMemoryWindow(){
+  const locked=document.getElementById('memory-locked');
+  const body=document.getElementById('memory-body');
+  if(!routeSolved){ locked.classList.remove('hidden'); body.classList.add('hidden'); return; }
+  locked.classList.add('hidden'); body.classList.remove('hidden');
+  document.querySelectorAll('.block-card').forEach(c=>c.style.pointerEvents=memorySolved?'none':'auto');
+}
+document.querySelectorAll('.block-card').forEach(card=>{
+  card.addEventListener('click',()=>selectMemory(card.dataset.block));
+});
+async function selectMemory(num){
+  if(!routeSolved||memorySolved)return;
+  const msg=document.getElementById('memory-msg');
+  const log=document.getElementById('memory-log');
+  if(num==='01'){
+    memorySolved=true;
+    document.querySelectorAll('.block-card').forEach(c=>c.style.pointerEvents='none');
+    msg.textContent='HASH_MATCH: 100%.';
+    msg.style.color='var(--green)';
+    beep('ok');
+    log.textContent='[EXTRACTING HUMAN MEMORY VECTOR...]';
+    await sleep(500); log.textContent+='\n[HASH_MATCH: 100%] // DECRYPTION COMPLETE';
+    await sleep(300);
+    log.textContent+='\n\nUNLOCKED HUMAN MEMORY FRAGMENT #02:\n"Oct 12, 2018 - Garage Band Audio Log"\n[AUDIO_PREVIEW]: Strumming guitar chords, laughter in background, tape hiss.';
+    await sleep(800);
+    log.textContent+='\n\n[STATIC_HUM] PROXY CHASE: "...Turn that off. I don\'t remember writing that log,\nand I definitely don\'t play guitar anymore."';
+    staticBurst(.4,.08);
+    setCorruption(88);
+    appendTerm('[SYSTEM]: HUMAN MEMORY FRAGMENT #02 EXTRACTED.');
+    await sleep(2200);
+    proceedToConfrontation();
+  }else{
+    msg.textContent='HASH MISMATCH // BLOCK REJECTED.';
+    msg.style.color='var(--red)';
+    beep('err');
+  }
+}
+
+const camMsg=document.getElementById('cam-decrypt-msg');
+const camInput=document.getElementById('cam-key-input');
+document.getElementById('cam-decrypt-btn').addEventListener('click',()=>attemptMara(camInput.value));
+camInput.addEventListener('keydown',e=>{ if(e.key==='Enter')attemptMara(camInput.value); });
+
+function attemptMara(rawVal){
+  const val=(rawVal!==undefined?rawVal:'').trim().toUpperCase();
+  if(camSolved){
+    camMsg.textContent='FOLDER_ALPHA ALREADY UNLOCKED.';
+    camMsg.style.color='#7fd0a5';
+    appendTerm('FOLDER_ALPHA ALREADY UNLOCKED.');
+    return;
+  }
+  if(!synthSolved){
+    camMsg.textContent='ACCESS DENIED // COMPLETE AUDIO CALIBRATION FIRST.';
+    camMsg.style.color='var(--red)';
+    appendTerm('ACCESS DENIED // COMPLETE AUDIO CALIBRATION FIRST.');
+    beep('err');
+    return;
+  }
+  if(val==='MARA'||rawVal===undefined){
+    camMsg.textContent='ACCESS_GRANTED.';
+    camMsg.style.color='var(--green)';
+    grantMaraAccess();
+  }else{
+    camMsg.textContent='INCORRECT DESIGNATION.';
+    camMsg.style.color='var(--red)';
+    appendTerm('DECRYPTION FAILED.');
+    beep('err');
+  }
+}
+
+async function grantMaraAccess(){
+  if(camSolved)return;
+  camSolved=true;
+  appendTerm('ACCESS_GRANTED // PROJECT_MYOSOTIS DECRYPTED');
+  beep('ok');
+  unlockSector('mara');
+  setCorruption(55);
+  await sleep(900);
+  appendTerm('\n[SYSTEM_ALERT]: FIREWALL_INTERCEPT DETECTED. Open ROUTE_OVERRIDE.sys to begin bypass.');
+}
+
+async function proceedToConfrontation(){
+  setStatus('CONNECTION UNSTABLE');
+  await playDialogue(act4Lines);
+  unlockSector('confront');
+  setCorruption(95);
+  await sleep(3500);
+  beginEnding();
+}
+
+/* ---------- act 5: ending ---------- */
+let locked=false;
+async function beginEnding(){
+  if(locked)return;
+  locked=true;
+  unlockSector('closing');
+  setStatus('CONTROLS UNRESPONSIVE...');
+  document.querySelectorAll('.dock-icon').forEach(i=>i.style.pointerEvents='none');
+  termIn.disabled=true;
+  camInput.disabled=true;
+
+  const endScreen=document.getElementById('screen-ending');
+  const narr=document.getElementById('end-narration');
+  const hex=document.getElementById('hex-rain');
+  const tel=document.getElementById('telemetry');
+  const poff=document.getElementById('poweroff-line');
+  const after=document.getElementById('end-aftermath');
+
+  endScreen.classList.remove('hidden');
+  narr.classList.remove('hidden');
+  narr.textContent='The green CRT screen is glitching out. Your keyboard controls just stopped responding. The terminal is typing commands on its own...';
+  await sleep(3200);
+  narr.classList.add('hidden');
+
+  hex.classList.remove('hidden');
+  staticBurst(1.4,.18);
+  let hexTimer=setInterval(()=>{
+    let block='';
+    for(let r=0;r<40;r++){
+      let row='';
+      for(let c=0;c<48;c++)row+=Math.floor(Math.random()*16).toString(16);
+      block+=row+'\n';
+    }
+    hex.textContent=block;
+  },70);
+  await sleep(1800);
+  clearInterval(hexTimer);
+  hex.classList.add('hidden');
+  document.getElementById('bgm').volume=.08;
+
+  await sleep(3000);
+
+  tel.classList.remove('hidden');
+  const fakeIp='10.'+rnd(255)+'.'+rnd(255)+'.'+rnd(255);
+  const fakeLat=(40+Math.random()*8).toFixed(4);
+  const fakeLon=-(70+Math.random()*40).toFixed(4);
+  const telLines=[
+    '[SYSTEM_OVERRIDE // PROXY_RELAY_ESTABLISHED]',
+    '> TRACING_ORIGIN... OK.',
+    '> IP_ADDRESS_RESOLVED: '+fakeIp,
+    '> GEO_COORDINATES: '+fakeLat+', '+fakeLon,
+    '> LOCAL_DEVICE_TELEMETRY: FETCHING...',
+    '> AUDIO_FEED: LIVE [IN-GAME MIC DETECTED]',
+    '> AMBIENT_NOISE_LEVEL: LOW',
+    '> SENSOR_TRIANGULATION: 100%',
+    '> PROXIMITY_ALERT: [PROXIMITY: 0.0 MILES]'
+  ];
+  for(const l of telLines){
+    tel.textContent+=(tel.textContent?'\n':'')+l;
+    beep(l.includes('ALERT')||l.includes('PROXIMITY')?'err':'high');
+    await sleep(320);
+  }
+  setCorruption(100);
+  await sleep(900);
+
+  tel.textContent+='\n\n[SIGNAL_CALIBRATED // LOCATION_LOCKED]\n';
+  await sleep(700);
+  const signalLines=[
+    '[BEEP_LOW] PROXY CHASE: "Nice job on the puzzles, kid. Thanks for holding the frequency open for me."',
+    '[STATIC_HUM] PROXY CHASE: "I don\'t need a video feed to know exactly where you\'re sitting right now."'
+  ];
+  for(const l of signalLines){
+    tel.textContent+='\n'+l;
+    tel.scrollTop=tel.scrollHeight;
+    if(l.includes('STATIC'))staticBurst(.5,.1); else beep('low');
+    await sleep(2400);
+  }
+  await sleep(1200);
+
+  const shutdownLines=[
+    '[SYS_COMMAND]: FORCE_SHUTDOWN_INITIATED',
+    '[TERMINATE_PROCESS: MYOSOTIS.EXE]',
+    '[DISCONNECT_RELAY]',
+    '> GOODBYE.'
+  ];
+  tel.textContent+='\n';
+  for(const l of shutdownLines){
+    tel.textContent+='\n'+l;
+    tel.scrollTop=tel.scrollHeight;
+    beep('err');
+    await sleep(420);
+  }
+  await sleep(900);
+
+  tel.classList.add('hidden');
+  poff.classList.remove('hidden');
+  staticBurst(.3,.25);
+  poff.style.transition='transform .18s ease-in';
+  poff.style.transform='scaleX(1)';
+  document.getElementById('screen-ending').style.transition='transform .2s ease-in .18s, filter .2s ease-in .18s';
+  document.getElementById('screen-ending').style.background='#000';
+  await sleep(180);
+  poff.style.transition='transform .25s ease-in, opacity .25s ease-in .1s';
+  poff.style.transform='scaleX(0.02) scaleY(3)';
+  poff.style.opacity='0';
+  await sleep(400);
+  poff.classList.add('hidden');
+
+  document.getElementById('bgm').volume=.05;
+  after.classList.remove('hidden');
+  await sleep(6000);
+  document.getElementById('restart-btn').classList.add('show');
+}
+document.getElementById('restart-btn').addEventListener('click',()=>location.reload());
+function rnd(n){return Math.floor(Math.random()*n);}
+
+})();
+</script>
