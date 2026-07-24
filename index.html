@@ -4,16 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>NetForum — Unexplained vocal bleed on custom guitar synth setup</title>
-<!--
-  Required local assets (place in the same folder as this file):
-    bgm.mp3        — looping background music, starts once the player clicks the vault link
-    Camera_01.png  — CCTV still/loop for Cam_Watcher.sys, feed 01 (letter M)
-    Camera_02.png  — feed 02 (letter A)
-    Camera_03.png  — feed 03 (letter R)
-    Camera_04.png  — feed 04 (letter A)
-  Camera images also try .jpg/.jpeg/.webp automatically if .png is missing.
-  If an asset is missing the game degrades gracefully (silent audio / "NO SIGNAL" placeholder).
--->
 <style>
 :root{
   --green:#2dffb0;
@@ -647,12 +637,12 @@ function unlockAudio(){
   if(bgmStarted)return;
   bgmStarted=true;
   try{ const c=ensureAudio(); if(c.state==='suspended') c.resume(); }catch(e){}
-  const b=document.getElementById('bgm');
+  const b=document.getElementById('bgm2');
   b.volume=0;
   b.play().catch(()=>{});
 }
 function revealBgm(){
-  const b=document.getElementById('bgm');
+  const b=document.getElementById('bgm2');
   const target=.45;
   if(b.paused){ b.play().catch(()=>{}); }
   const iv=setInterval(()=>{
@@ -662,9 +652,9 @@ function revealBgm(){
 }
 document.getElementById('sound-toggle').addEventListener('click',function(){
   muted=!muted;
-  const b=document.getElementById('bgm');
+  const b=document.getElementById('bgm2');
   b.muted=muted;
-  this.textContent=muted?'[SND:MUTE]':'[SND:ON]';
+  this.btn.textContent = on ? '🔊' : '🔇';
 });
 
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
