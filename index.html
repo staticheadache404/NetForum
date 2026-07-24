@@ -521,12 +521,10 @@ NODE_06  |  PORT: 22    |  STATUS: ONLINE     |  PROTOCOL: SECURE
 --------------------------------------------------------------------------
 
 [README.TXT // SYS_ADMIN_NOTE]:
-"If you're trying to bypass the perimeter alert, trace a 3-node
- sequence:
+"If you're trying to bypass the perimeter alert, trace a 3-node sequence:
  1. NEVER connect to a node flagged as CORRUPTED or INFECTED.
  2. Avoid PORT 8080 -- 'He' is actively sniffing traffic on that port.
- 3. Your sequence must start with the lowest-numbered valid node,
-    then move forward in ascending order for a clean relay path."</pre>
+ 3. Your sequence must start with the lowest-numbered valid node, then move forward in ascending order for a clean relay path."</pre>
             <div class="puzzle-options" id="route-options">
               <button class="opt-btn" data-letter="a">[A] ROUTE NODE_01 &rarr; NODE_02 &rarr; NODE_06</button>
               <button class="opt-btn" data-letter="b">[B] ROUTE NODE_01 &rarr; NODE_04 &rarr; NODE_06</button>
@@ -1181,6 +1179,9 @@ document.getElementById('restart-btn').addEventListener('click',()=>location.rel
 function rnd(n){return Math.floor(Math.random()*n);}
 
 })();
+</script>
+</body>
+</html>
 </script>
 </body>
 </html>
