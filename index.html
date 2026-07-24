@@ -637,12 +637,12 @@ function unlockAudio(){
   if(bgmStarted)return;
   bgmStarted=true;
   try{ const c=ensureAudio(); if(c.state==='suspended') c.resume(); }catch(e){}
-  const b=document.getElementById('bgm2');
+  const b=document.getElementById('bgm');
   b.volume=0;
   b.play().catch(()=>{});
 }
 function revealBgm(){
-  const b=document.getElementById('bgm2');
+  const b=document.getElementById('bgm');
   const target=.45;
   if(b.paused){ b.play().catch(()=>{}); }
   const iv=setInterval(()=>{
@@ -652,9 +652,9 @@ function revealBgm(){
 }
 document.getElementById('sound-toggle').addEventListener('click',function(){
   muted=!muted;
-  const b=document.getElementById('bgm2');
+  const b=document.getElementById('bgm');
   b.muted=muted;
-  this.btn.textContent = on ? '🔊' : '🔇';
+  this.textContent=muted?'[SND:MUTE]':'[SND:ON]';
 });
 
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
